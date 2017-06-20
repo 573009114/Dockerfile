@@ -1,0 +1,19 @@
+FROM alpine:3.5
+MAINTAINER haowen
+
+WORKDIR /tmp
+RUN apk add --no-cache --virtual .build-deps g++ \
+		gcc \
+		wget \
+		make \
+	&& wget  http://10.15.201.252/software/nutcracker-0.4.0.tar.gz \
+	&& tar zxf nutcracker-0.4.0.tar.gz \
+	&& cd nutcracker-0.4.0 && ./configure --prefix=/opt/nutcracker/ \
+	&& make && make install \
+	&& rm -fr /tmp/* \
+	&& apk del .build-deps
+
+ADD nutcracker.yml /opt/nutcracker/conf/
+WORKDIR /opt/nutcracker/sbin
+CMD ["./nutcracker","-c","/opt/nutcracker/conf/nutcracker.yml","-o","/tmp/nutcracker.log"]
+EXPOSE 8001 22222
