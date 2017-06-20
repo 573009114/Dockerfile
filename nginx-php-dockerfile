@@ -1,0 +1,77 @@
+FROM centos
+MAINTAINER haowen
+
+ENV PHP_PREFIX=/opt/php56/
+ENV libsdir=/opt/php56/ext
+ENV URL=http://10.15.201.252/software/xcar/
+
+WORKDIR /tmp
+
+RUN yum -y install epel-release autoconf make wget mysql-devel lua-devel libevent libxml2-devel curl-devel libjpeg-devel libpng-devel libXpm-devel freetype-devel libicu-devel libxslt-devel gcc-c++ openssl-devel bzip2-devel curl-devel libjpeg-devel libpng-devel libXpm-devel postgresql-devel libxslt-devel git unzip gmp gmp-devel readline readline-devel libxslt libxslt-devel \
+	&& wget ftp://mcrypt.hellug.gr/pub/crypto/mcrypt/libmcrypt/libmcrypt-2.5.7.tar.gz\
+	&& tar zxf libmcrypt-2.5.7.tar.gz \
+	&& cd libmcrypt-2.5.7 \
+	&& ./configure \
+	&& make && make install \
+	&& cd /tmp && wget $URL/php-5.6.7.tar.gz \
+	&& tar zxf php-5.6.7.tar.gz \
+	&& cd php-5.6.7 \
+	&& ./configure  --prefix=/opt/php56/ --enable-static --enable-fpm --with-fpm-user=nobody --with-fpm-group=nobody --with-gd --enable-gd-native-ttf --with-freetype-dir --with-jpeg-dir --with-png-dir --with-iconv-dir --enable-sockets --enable-mbstring --enable-bcmath --with-curl --with-openssl --with-mcrypt --with-gettext --with-pcre-dir --with-zlib-dir --enable-ftp --enable-soap --enable-zip --with-xmlrpc --enable-inline-optimization --enable-calendar --enable-wddx --with-mysql --enable-mysqlnd --with-mysqli --with-pdo-mysql \
+	&& make && make install \
+	&& cd /tmp/php-5.6.7 && cp sapi/fpm/init.d.php-fpm /opt/php56/sbin/php.service && chmod +x /opt/php56/sbin/php.service \
+	&& cd /tmp/php-5.6.7/ext/exif && /opt/php56/bin/phpize && ./configure --with-php-config=/opt/php56/bin/php-config \
+	&& cd /tmp \
+	&& wget $URL/php_extend/memcache-2.2.7.tgz \
+	&& tar zxf memcache-2.2.7.tgz \
+	&& cd /tmp &&  cd memcache-2.2.7 \
+	&& /opt/php56/bin/phpize \
+	&& ./configure --with-php-config=/opt/php56/bin/php-config \
+	&& cd /tmp \
+	&& wget $URL/php_extend/libmemcached-1.0.18.tar.gz \
+	&& tar zxf libmemcached-1.0.18.tar.gz \
+	&& cd /tmp && cd libmemcached-1.0.18 \
+	&& ./configure --prefix=/opt/php56/ext/libmemcached --with-memcached \
+	&& make && make install \
+	&& cd /tmp \
+	&& wget $URL/php_extend/memcached-2.2.0.tgz \
+	&& tar zxf memcached-2.2.0.tgz \
+	&& cd /tmp && cd memcached-2.2.0 \
+	&& /opt/php56/bin/phpize \
+	&& ./configure --enable-memcached --with-php-config=/opt/php56/bin/php-config --with-libmemcached-dir=/opt/php56/ext/libmemcached --disable-memcached-sasl \
+	&& make && make install \
+	&& cd /tmp &&  wget $URL/php_extend/redis-2.2.7.tgz \
+	&& tar zxf redis-2.2.7.tgz \
+	&& cd redis-2.2.7 \
+	&& /opt/php56/bin/phpize \
+	&& ./configure --with-php-config=/opt/php56/bin/php-config \
+	&& make && make install \
+	&& cd /tmp && wget $URL/php_extend/mongo-1.4.2.tgz \
+	&& tar xzf mongo-1.4.2.tgz \
+	&& cd mongo-1.4.2 \
+	&& /opt/php56/bin/phpize \
+	&& ./configure --with-php-config=/opt/php56/bin/php-config \
+	&& make && make install \
+	&& cd /tmp &&  wget $URL/php_extend/xhprof-0.9.4.tgz \
+	&& tar xzvf xhprof-0.9.4.tgz \
+	&& cd xhprof-0.9.4/extension \
+	&& /opt/php56/bin/phpize \
+	&& ./configure --with-php-config=/opt/php56/bin/php-config \
+	&& make && make install \
+	&& rm -fr /tmp/* \
+	&& rm -fr /var/cache/yum \
+\
+	&& cd /tmp/ && wget http://10.15.201.252/software/xcar/ngx_cache_purge-2.3.tar.gz \
+	&& wget http://10.15.201.252/software/xcar/ngx_openresty-1.7.10.2.tar.gz \
+	&& wget http://10.15.201.252/software/xcar/nginx-http-concat_20161124.tgz \
+	&& tar zxf ngx_cache_purge-2.3.tar.gz \
+	&& tar zxf ngx_openresty-1.7.10.2.tar.gz \
+	&& tar zxf nginx-http-concat_20161124.tgz \
+	&& cd ngx_openresty-1.7.10.2 \
+	&& ./configure --prefix=/opt/openresty --with-http_stub_status_module --with-http_sub_module --with-http_auth_request_module --add-module=../nginx-http-concat --add-module=../ngx_cache_purge-2.3 \
+	&& make && make install \
+	&& rm -fr /tmp/* \
+
+ADD ./php.ini /opt/php56/lib/
+ADD ./php-fpm.conf /opt/php56/etc/
+EXPOSE 80 443
+CMD ["/opt/php56/sbin/php-fpm","-F"]
