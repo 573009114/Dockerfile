@@ -15,5 +15,5 @@ RUN apk add --no-cache --virtual .build-deps g++ \
 
 ADD nutcracker.yml /opt/nutcracker/conf/
 WORKDIR /opt/nutcracker/sbin
-CMD ["./nutcracker","-c","/opt/nutcracker/conf/nutcracker.yml","-o","/tmp/nutcracker.log"]
+CMD ["./nutcracker","-s","22222","-c","/opt/nutcracker/conf/nutcracker.yml","-o","/tmp/nutcracker.log"]
 EXPOSE 8001 22222
