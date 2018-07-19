@@ -1,4 +1,4 @@
-```
+ 
 FROM debian:jessie
 ENV MEM_PREFIX=/opt/memcached
 RUN buildDeps='gcc libc6-dev make wget' \
@@ -16,4 +16,4 @@ RUN buildDeps='gcc libc6-dev make wget' \
 WORKDIR $MEM_PREFIX
 CMD ["/opt/memcached/bin/memcached","-m","2048","-u","nobody","-l","0.0.0.0","-c","5000","-p","11211","-P","/tmp/memcached.pid"]
 EXPOSE 11211
-```
+
